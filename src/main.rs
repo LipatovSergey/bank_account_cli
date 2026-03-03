@@ -5,6 +5,18 @@ struct BankAccount {
     balance: i32,
 }
 
+enum Command {
+    Deposit,
+    Withdraw,
+    ShowBalance,
+    Exit,
+}
+
+enum Transaction {
+    Deposit(i32),
+    Withdraw(i32),
+}
+
 impl BankAccount {
     fn new(owner: String, balance: i32) -> Self {
         Self { owner, balance }
@@ -49,6 +61,29 @@ fn read_i32() -> i32 {
     }
 }
 
+fn parse_command(n: i32) -> Option<Command> {
+    match n {
+        1 => Some(Command::Deposit),
+        2 => Some(Command::Withdraw),
+        3 => Some(Command::ShowBalance),
+        0 => Some(Command::Exit),
+        _ => None,
+    }
+}
+
+fn apply_transaction(account: &mut BankAccount, transaction: Transaction) {
+    match transaction {
+        Transaction::Deposit(amount) => {
+            account.deposit(amount);
+            account.print_balance();
+        }
+        Transaction::Withdraw(amount) => {
+            account.withdraw(amount);
+            account.print_balance();
+        }
+    }
+}
+
 fn main() {
     let mut account1 = BankAccount::new(String::from("John Doe"), 10);
     println!(
@@ -66,28 +101,29 @@ fn main() {
         "
         );
 
-        match read_i32() {
-            1 => {
+        let raw = read_i32();
+        let cmd_opt = parse_command(raw);
+
+        match cmd_opt {
+            Some(Command::Deposit) => {
                 println!("Please enter the amount to deposit");
                 let amount = read_i32();
-                account1.deposit(amount);
-                account1.print_balance();
+                apply_transaction(&mut account1, Transaction::Deposit(amount));
             }
-            2 => {
+            Some(Command::Withdraw) => {
                 println!("Please enter the amount to withdraw");
                 let amount = read_i32();
-                account1.withdraw(amount);
-                account1.print_balance();
+                apply_transaction(&mut account1, Transaction::Withdraw(amount));
             }
-            3 => {
+            Some(Command::ShowBalance) => {
                 println!("Your balance is");
                 account1.print_balance();
             }
-            0 => {
+            Some(Command::Exit) => {
                 println!("Exit");
                 break;
             }
-            _ => println!("Unknown command"),
+            None => println!("Unknown command"),
         }
     }
 }
